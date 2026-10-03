@@ -7,6 +7,7 @@ import DeviceSwitchBar, { SCREENS_LIST } from "./components/DeviceSwitchBar";
 
 // 14 Mockup Screens
 import Home from "./pages/Home";
+import Portals from "./pages/Portals";
 import RoleSignupPage from "./pages/RoleSignupPage";
 import RoleLoginPage from "./pages/RoleLoginPage";
 import StudentDashboard from "./pages/StudentDashboard";
@@ -21,6 +22,8 @@ import AdminDashboard from "./pages/AdminDashboard";
 import KitchenDashboard from "./pages/KitchenDashboard";
 
 import "./styles/campusbite.css";
+import "./styles/polish.css";
+import "./styles/reference.css";
 
 function AppContent() {
   const [cart, setCart] = useState(() => {
@@ -51,6 +54,7 @@ function AppContent() {
     localStorage.setItem("campusbite_cart", JSON.stringify(cart));
   }, [cart]);
 
+  useEffect(() => { window.scrollTo(0, 0); }, [location.pathname]);
   const cartCount = useMemo(
     () => cart.reduce((sum, item) => sum + item.quantity, 0),
     [cart]
@@ -59,12 +63,12 @@ function AppContent() {
   return (
     <div className={`app-root ${isMobileFrame ? "mobile-simulator-active" : "laptop-view-active"}`}>
       {/* Interactive Top Switcher Bar (Laptop Web View <-> Mobile App View & 14 Screens Jumper) */}
-      <DeviceSwitchBar
+      {new URLSearchParams(location.search).has("preview") && <DeviceSwitchBar
         currentScreen={location.pathname}
         isMobileFrame={isMobileFrame}
         setIsMobileFrame={setIsMobileFrame}
         navigate={navigate}
-      />
+      />}
 
       {/* Simulator Wrapper: When Mobile View is selected, wraps content in an authentic iPhone bezel */}
       <div className={isMobileFrame ? "iphone-device-frame" : "desktop-browser-container"}>
@@ -83,16 +87,16 @@ function AppContent() {
         )}
 
         {/* Global Navigation */}
-        <Navbar cartCount={cartCount} />
+        {!["/menu", "/login", "/signup", "/portals"].includes(location.pathname) && <Navbar cartCount={cartCount} />}
 
         {/* Auth Modal with Teacher, Student, Admin, Kitchen */}
         <RoleAuthModal />
 
         {/* Main Routes */}
-        <div className="app-main-viewport">
+        <div className="app-main-viewport" id="main-content">
           <Routes>
             {/* 01. Home Page */}
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={<Home />} /><Route path="/portals" element={<Portals />} /><Route path="*" element={<div className="bite-not-found"><h1>That page is off the menu.</h1><button onClick={() => navigate("/menu")}>Explore the menu</button></div>} />
 
             {/* 02. Role Signup */}
             <Route path="/signup" element={<RoleSignupPage />} />
@@ -118,7 +122,7 @@ function AppContent() {
             {/* 09. Payment Page (UPI / QR) */}
             <Route
               path="/payment"
-              element={<Payment cart={cart} setLastOrder={setLastOrder} />}
+              element={<Payment cart={cart} setCart={setCart} setLastOrder={setLastOrder} />}
             />
 
             {/* 10. Pay-Bill / Invoice */}

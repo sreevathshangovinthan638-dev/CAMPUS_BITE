@@ -8,9 +8,9 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
     try {
       const stored = localStorage.getItem("campusbite_user");
-      return stored ? JSON.parse(stored) : DEMO_USERS.student;
+      return stored ? JSON.parse(stored) : null;
     } catch {
-      return DEMO_USERS.student;
+      return null;
     }
   });
 
@@ -106,7 +106,7 @@ export function AuthProvider({ children }) {
   };
 
   const logout = () => {
-    setUser(DEMO_USERS.student);
+    setUser(null);
   };
 
   const openLoginForRole = (role) => {

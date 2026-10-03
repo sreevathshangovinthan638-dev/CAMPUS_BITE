@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   FaEye,
@@ -13,13 +13,17 @@ import { useAuth } from "../context/AuthContext";
 
 export default function RoleLoginPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const requestedRole = searchParams.get("role");
+  const initialRole = ["student", "teacher", "admin", "kitchen"].includes(requestedRole) ? requestedRole : "student";
   const { loginWithCredentials, quickSwitchRole } = useAuth();
-  const [selectedRole, setSelectedRole] = useState("student");
-  const [username, setUsername] = useState("student");
+  const [selectedRole, setSelectedRole] = useState(initialRole);
+  const [username, setUsername] = useState(initialRole);
   const [password, setPassword] = useState("student123");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [loading, setLoading] = useState(false);
+  useEffect(() => { setSelectedRole(initialRole); }, [initialRole]);
 
   useEffect(() => {
     if (selectedRole === "teacher") {
@@ -42,10 +46,10 @@ export default function RoleLoginPage() {
     setLoading(true);
     try {
       await loginWithCredentials(username, password, selectedRole);
-      if (selectedRole === "teacher") navigate("/teacher");
+      if (selectedRole === "teacher") navigate("/menu");
       else if (selectedRole === "admin") navigate("/admin");
       else if (selectedRole === "kitchen") navigate("/kitchen");
-      else navigate("/student");
+      else navigate("/menu");
     } finally {
       setLoading(false);
     }
@@ -55,10 +59,10 @@ export default function RoleLoginPage() {
     setLoading(true);
     try {
       await quickSwitchRole(role);
-      if (role === "teacher") navigate("/teacher");
+      if (role === "teacher") navigate("/menu");
       else if (role === "admin") navigate("/admin");
       else if (role === "kitchen") navigate("/kitchen");
-      else navigate("/student");
+      else navigate("/menu");
     } finally {
       setLoading(false);
     }
@@ -69,30 +73,18 @@ export default function RoleLoginPage() {
       <div className="auth-card-replica">
         {/* Top College Header */}
         <div className="card-top-college">
-          <img src="/logo.jpg" alt="PSG Logo" className="header-logo" />
+          <img src="/campusbite-logo.jpeg" alt="CampusBite PSGCAS logo" className="header-logo" />
           <span>PSG College of Arts & Science</span>
         </div>
 
         {/* Screen 03 Content */}
-        <div className="auth-content-box">
+        <div className="auth-content-box"><nav className="role-auth-tabs" aria-label="Account access"><Link className="" to={`/signup?role=${selectedRole}`}>Sign up</Link><Link className="active" to={`/login?role=${selectedRole}`}>Login</Link></nav>
           <div className="header-titles">
             <h2>Welcome Back</h2>
             <p>Login to your CampusBite account</p>
           </div>
 
-          {/* 4 Role Tabs: [ Student ] [ Teacher ] [ Admin ] [ Kitchen ] */}
-          <div className="role-tabs-horizontal">
-            {["student", "teacher", "admin", "kitchen"].map((r) => (
-              <button
-                key={r}
-                className={`tab-btn ${selectedRole === r ? "active" : ""}`}
-                onClick={() => setSelectedRole(r)}
-              >
-                {r.charAt(0).toUpperCase() + r.slice(1)}
-              </button>
-            ))}
-          </div>
-
+          <div className="selected-role-note"><strong>{selectedRole.charAt(0).toUpperCase() + selectedRole.slice(1)} account</strong><Link to="/portals">Change role →</Link></div>
           {/* Quick Demo One-Click Access Notice */}
           <div className="quick-fill-hint">
             <button
@@ -182,7 +174,7 @@ export default function RoleLoginPage() {
 
             <div className="bottom-switch-link">
               <span>New to CampusBite? </span>
-              <Link to="/signup">Create Account</Link>
+              <Link to={`/signup?role=${selectedRole}`}>Create Account</Link>
             </div>
           </form>
         </div>

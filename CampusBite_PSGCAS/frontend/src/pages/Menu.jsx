@@ -23,16 +23,17 @@ export default function Menu({ cart, setCart }) {
 
   const [foods, setFoods] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
   const [loading, setLoading] = useState(true);
   const [isBackendOnline, setIsBackendOnline] = useState(false);
   const [justAddedId, setJustAddedId] = useState(null);
 
   // Sync category param with URL
   useEffect(() => {
+    setSearchQuery(searchParams.get("search") || "");
     const cat = searchParams.get("cat");
-    if (cat && cat !== selectedCategory) {
-      setSelectedCategory(cat);
+    if ((cat || "all") !== selectedCategory) {
+      setSelectedCategory(cat || "all");
     }
   }, [searchParams]);
 
@@ -109,18 +110,18 @@ export default function Menu({ cart, setCart }) {
   );
 
   return (
-    <main className="menu-page">
+    <main className="menu-page food-focus-page"><div className="food-focus-actions"><button type="button" onClick={() => { if (selectedCategory !== "all") { setSearchQuery(""); setSearchParams({}); } else { navigate("/portals"); } }}>← {selectedCategory === "all" ? "Back" : "Food categories"}</button><button type="button" onClick={() => navigate("/cart")} aria-label={`View cart, ${totalCartCount} items`}><FaShoppingCart /> Cart ({totalCartCount})</button></div>
       {/* Top Banner & Search (Matching Mockup Screen 04, 05, 06) */}
       <div className="menu-header-section">
         <div className="menu-title-block">
           <div className="title-left">
-            <h1>PSGCAS Food Court Menu</h1>
-            <p>Fresh, hygienic, traditional South Indian meals, snacks & beverages</p>
+            <h1>{selectedCategory === "all" ? "Menu" : CATEGORIES.find(c => c.key === selectedCategory)?.label || "Menu"}</h1>
+            <p>{selectedCategory === "all" ? "Explore our delicious food categories" : CATEGORIES.find(c => c.key === selectedCategory)?.tagline}</p>
           </div>
           <div className="system-status-indicator">
             <span className={`status-pill ${isBackendOnline ? "online" : "standalone"}`}>
               <span className="dot"></span>
-              {isBackendOnline ? "Django API Online (Port 8000)" : "CampusBite Ready • Full Menu Active"}
+              {isBackendOnline ? "Menu connected" : "CampusBite Ready • Full Menu Active"}
             </span>
           </div>
         </div>
@@ -131,43 +132,20 @@ export default function Menu({ cart, setCart }) {
           <input
             type="text"
             className="menu-search-input"
-            placeholder="Search for food, e.g., idli, dosa, sandwich, meals..."
+            aria-label="Search the menu" placeholder="Search for food, e.g., idli, dosa, sandwich, meals..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
           {searchQuery && (
-            <button className="clear-search-btn" onClick={() => setSearchQuery("")}>
+            <button aria-label="Clear search" className="clear-search-btn" onClick={() => setSearchQuery("")}>
               ✕
             </button>
           )}
         </div>
 
-        {/* Category Pills (Matching Mockup Screen 05 & 06) */}
-        <div className="category-scroll-container">
-          {CATEGORIES.map((cat) => {
-            const isActive = selectedCategory === cat.key;
-            return (
-              <button
-                key={cat.key}
-                className={`category-pill-btn ${isActive ? "active" : ""}`}
-                onClick={() => handleCategoryChange(cat.key)}
-              >
-                <span className="cat-icon">{cat.icon}</span>
-                <span className="cat-label">{cat.label}</span>
-              </button>
-            );
-          })}
-        </div>
       </div>
 
-      {/* Selected Category Subtitle if not 'all' */}
-      {selectedCategory !== "all" && (
-        <div className="category-header-banner">
-          <h2>{CATEGORIES.find((c) => c.key === selectedCategory)?.label}</h2>
-          <p>{CATEGORIES.find((c) => c.key === selectedCategory)?.tagline}</p>
-        </div>
-      )}
-
+      {selectedCategory === "all" && !searchQuery.trim() && <div className="reference-category-grid">{CATEGORIES.filter(c => c.key !== "all").map(c => <button key={c.key} className="reference-category-card" onClick={() => handleCategoryChange(c.key)}><img src={c.image} alt={c.label} loading="lazy" /><div><h2>{c.label}</h2><p>{({breakfast:"Start fresh",lunch:"Wholesome meals",snacks:"Quick bites",juice:"Fresh & healthy",chat:"Full of flavour",icecream:"Cool your day"})[c.key]}</p></div></button>)}</div>}
       {/* Loading Skeleton */}
       {loading && (
         <div className="menu-loading-state">
@@ -177,7 +155,7 @@ export default function Menu({ cart, setCart }) {
       )}
 
       {/* Food Grid (Matching Screen 06 replica) */}
-      {!loading && (
+      {!loading && (selectedCategory !== "all" || searchQuery.trim()) && (
         <div className="food-grid-container">
           {filteredFoods.length === 0 ? (
             <div className="empty-menu-state">
@@ -187,7 +165,7 @@ export default function Menu({ cart, setCart }) {
               <button
                 className="reset-filter-btn"
                 onClick={() => {
-                  setSelectedCategory("all");
+                  handleCategoryChange("all");
                   setSearchQuery("");
                 }}
               >
@@ -214,7 +192,7 @@ export default function Menu({ cart, setCart }) {
                         className="food-thumb-img"
                         loading="lazy"
                         onError={(e) => {
-                          e.target.src = "https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=400&auto=format&fit=crop&q=80";
+                          e.currentTarget.onerror = null; e.currentTarget.src = "https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=400&auto=format&fit=crop&q=80";
                         }}
                       />
                       <span className="prep-time-badge">
@@ -234,12 +212,12 @@ export default function Menu({ cart, setCart }) {
 
                         {qty === 0 ? (
                           <motion.button
-                            className="add-to-cart-pill-btn"
+                            disabled={food.is_available === false} aria-label={`Add ${food.name} to bag`} className="add-to-cart-pill-btn"
                             onClick={() => updateQuantity(food, 1)}
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                           >
-                            <FaPlus /> Add
+                            <FaPlus /> {food.is_available === false ? "Sold out" : "Add"}
                           </motion.button>
                         ) : (
                           <div className="quantity-stepper">

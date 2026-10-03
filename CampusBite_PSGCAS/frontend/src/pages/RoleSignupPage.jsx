@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   FaGraduationCap,
@@ -14,13 +14,17 @@ import { useAuth } from "../context/AuthContext";
 
 export default function RoleSignupPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const requestedRole = searchParams.get("role");
+  const initialRole = ["student", "teacher", "admin", "kitchen"].includes(requestedRole) ? requestedRole : "student";
   const { registerUser } = useAuth();
-  const [selectedRole, setSelectedRole] = useState("student");
+  const [selectedRole, setSelectedRole] = useState(initialRole);
   const [fullName, setFullName] = useState("");
   const [rollNumber, setRollNumber] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  useEffect(() => { setSelectedRole(initialRole); }, [initialRole]);
 
   const roles = [
     {
@@ -60,7 +64,7 @@ export default function RoleSignupPage() {
         roll_number: rollNumber || (selectedRole === "teacher" ? "FAC-8842" : "23BCS042"),
         role: selectedRole,
       });
-      if (selectedRole === "teacher") navigate("/teacher");
+      if (selectedRole === "teacher") navigate("/menu");
       else if (selectedRole === "admin") navigate("/admin");
       else if (selectedRole === "kitchen") navigate("/kitchen");
       else navigate("/menu");
@@ -74,42 +78,18 @@ export default function RoleSignupPage() {
       <div className="auth-card-replica">
         {/* Top College Header */}
         <div className="card-top-college">
-          <img src="/logo.jpg" alt="PSG Logo" className="header-logo" />
+          <img src="/campusbite-logo.jpeg" alt="CampusBite PSGCAS logo" className="header-logo" />
           <span>PSG College of Arts & Science</span>
         </div>
 
         {/* Screen 02 Content */}
-        <div className="auth-content-box">
+        <div className="auth-content-box"><nav className="role-auth-tabs" aria-label="Account access"><Link className="active" to={`/signup?role=${selectedRole}`}>Sign up</Link><Link className="" to={`/login?role=${selectedRole}`}>Login</Link></nav>
           <div className="header-titles">
             <h2>Create Your Account</h2>
-            <p>Join CampusBite and choose your role</p>
+            <p>Join CampusBite with your selected role</p>
           </div>
 
-          {/* 4 Role Option Cards */}
-          <div className="roles-options-vertical">
-            {roles.map((r) => {
-              const isSelected = selectedRole === r.id;
-              return (
-                <motion.div
-                  key={r.id}
-                  className={`role-select-box ${isSelected ? "selected" : ""}`}
-                  onClick={() => setSelectedRole(r.id)}
-                  whileHover={{ scale: 1.01 }}
-                  whileTap={{ scale: 0.99 }}
-                >
-                  <div className="role-icon-col">{r.icon}</div>
-                  <div className="role-text-col">
-                    <h4>{r.title}</h4>
-                    <p>{r.subtitle}</p>
-                  </div>
-                  <div className={`radio-dot ${isSelected ? "checked" : ""}`}>
-                    {isSelected && <FaCheck />}
-                  </div>
-                </motion.div>
-              );
-            })}
-          </div>
-
+          <div className="selected-role-note"><strong>{selectedRole.charAt(0).toUpperCase() + selectedRole.slice(1)} account</strong><Link to="/portals">Change role →</Link></div>
           <form onSubmit={handleContinue} className="signup-quick-form">
             <div className="input-group">
               <label>Full Name</label>
@@ -143,7 +123,7 @@ export default function RoleSignupPage() {
 
           <div className="bottom-switch-link">
             <span>Already have an account? </span>
-            <Link to="/login">Login</Link>
+            <Link to={`/login?role=${selectedRole}`}>Login</Link>
           </div>
         </div>
       </div>

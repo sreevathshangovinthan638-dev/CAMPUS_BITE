@@ -1,38 +1,14 @@
-# Dependencies
 node_modules/
-*/node_modules/
-__pycache__/
-*/__pycache__/
-*.pyc
-*.pyo
-*.pyd
-
-# Python virtual environment
-venv/
-env/
-.venv/
-ENV/
-
-# Production build outputs
 dist/
-build/
-*/dist/
-*/build/
-
-# Local database and media
-*.sqlite3
-db.sqlite3
-/media
-/static
-
-# Environment variables & secrets
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
+__pycache__/
+*.pyc
+*.sqlite3
+env/
+venv/
+.venv/
+staticfiles/
+media/
 *.log
-
-# IDE & OS files
-.DS_Store
-Thumbs.db
-.vscode/
-.idea/

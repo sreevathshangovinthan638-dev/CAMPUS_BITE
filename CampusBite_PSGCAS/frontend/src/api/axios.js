@@ -5,6 +5,7 @@ const API = axios.create({
 });
 
 API.interceptors.request.use((config) => {
+  if (!import.meta.env.VITE_API_URL) { return Promise.reject(new Error("Local demo mode")); }
   try {
     const rawAuth = localStorage.getItem("campusbite_user");
     if (rawAuth) {

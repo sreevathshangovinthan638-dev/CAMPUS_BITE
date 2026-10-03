@@ -32,6 +32,11 @@ export default function Orders() {
     );
   });
 
+  useEffect(() => {
+    const sync = () => { try { const saved=JSON.parse(localStorage.getItem("lastOrder") || "null"); if(saved) setOrder(saved); } catch {} };
+    window.addEventListener("storage",sync); window.addEventListener("campusbite-orders-updated",sync);
+    return () => {window.removeEventListener("storage",sync);window.removeEventListener("campusbite-orders-updated",sync);};
+  }, []);
   const [activeStep, setActiveStep] = useState(1); // 0 = Placed, 1 = Preparing, 2 = Ready, 3 = Completed
 
   useEffect(() => {
@@ -53,25 +58,25 @@ export default function Orders() {
   const steps = [
     {
       title: "Order Placed",
-      time: "10:24 AM",
+      time: order.orderTime || "",
       desc: "Your order has been confirmed",
       icon: <FaCheckCircle />,
     },
     {
       title: "Preparing",
-      time: "10:28 AM",
+      time: "",
       desc: "Our kitchen is preparing your food",
       icon: <FaFire />,
     },
     {
       title: "Ready for Pickup",
-      time: "10:38 AM",
+      time: "",
       desc: "Your order is ready at the counter",
       icon: <FaShoppingBag />,
     },
     {
       title: "Completed",
-      time: "10:42 AM",
+      time: "",
       desc: "Enjoy your meal!",
       icon: <FaSmile />,
     },

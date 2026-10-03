@@ -353,7 +353,7 @@ def place_order(request):
             total_amount=total,
             pickup_time=pickup_time,
             payment_method=payment_method,
-            payment_status=(payment_method == 'upi'),
+            payment_status=False,
         )
 
         for food, qty in order_lines:
@@ -368,8 +368,8 @@ def place_order(request):
             order=order,
             amount=total,
             method=payment_method,
-            status='paid' if payment_method == 'upi' else 'pending',
-            paid_at=timezone.now() if payment_method == 'upi' else None,
+            status='pending',
+            paid_at=None,
         )
 
     return Response(OrderSerializer(order).data, status=status.HTTP_201_CREATED)

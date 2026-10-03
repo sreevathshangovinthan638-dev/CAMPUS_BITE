@@ -85,15 +85,16 @@ export async function placeOrder(orderPayload) {
       source: "backend",
     };
   } catch (err) {
-    // Save to local cache seamlessly
+    if (import.meta.env.VITE_API_URL) throw new Error("The order could not be saved to the server. Please retry when connected.");
+    // Standalone local preview orders
     const localOrder = {
-      id: Math.floor(100000 + Math.random() * 900000),
-      orderCode: `CB${Date.now().toString().slice(-6)}`,
+      id: orderPayload.receipt_id || crypto.randomUUID(),
+      orderCode: orderPayload.receipt_id || crypto.randomUUID(),
       customer_name: orderPayload.customer_name || "Campus Student",
       total_amount: orderPayload.total_amount,
       pickup_time: orderPayload.pickup_time,
       payment_method: orderPayload.payment_method,
-      payment_status: orderPayload.payment_method === "upi",
+      payment_status: false,
       status: "pending",
       created_at: new Date().toISOString(),
       items: orderPayload.items,
